@@ -3,6 +3,8 @@ command-line tool to export subsets of Planet NICFI analytical basemaps to new G
 
 ## Quickstart
 
+Using your Shell window application of choice:
+
 Install earthengine-api from conda
 ```
 conda install -c conda-forge earthengine-api
