@@ -25,24 +25,26 @@ def export_nicfi(cloud_project,nicfi_region, aoi, start, end):
     collection = ee.FeatureCollection(collection_asset).filterDate(start,end)
     n_images = collection.size().getInfo()
     image_list = collection.toList(n_images)
-    folder = f'projects/{cloud_project}/assets/nicfi'
-    make_ee_folder(folder)
+    collection = f'projects/{cloud_project}/assets/nicfi'
+    make_ee_container(collection,'collection')
     
     for i in list(range(1,n_images)):
         img = ee.Image(ee.List(image_list).get(i))
         id = img.get('system:index').getInfo()
         desc = f'exportNICFI_image{i}'
-        asset_id = f'{folder}/{id}'
+        asset_id = f'{collection}/{id}'
         export_img_to_asset(image=img,
                             description=desc,
                             assetId=asset_id,
                             region=aoi,
                             scale=3,
                             maxPixels=1e12)
+        # break
 
-def make_ee_folder(path):
+def make_ee_container(path, type):
+    """Makes a GEE asset folder or collection (type) at the specified asset path (path)"""
     if check_exists(path):
-        cmd = f"earthengine create folder {path}"
+        cmd = f"earthengine create {type} {path}"
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, err = proc.communicate()
 
@@ -167,14 +169,14 @@ def main():
     args = parser.parse_args()
     
     cp = args.project
+    # initialize EE library with cloud project
+    _init(cp)
+
     nicfi_r = args.nicfi_region
-    aoi = args.aoi
+    aoi = ee.FeatureCollection(args.aoi)
     start=args.start
     end=args.end
-
-    _init(cp)
     
-    aoi = ee.FeatureCollection("projects/sig-ee-cloud/assets/rlcmsTests/sesheke")
     export_nicfi(cloud_project=cp,
                  nicfi_region=nicfi_r,
                  aoi=aoi,
